@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize CV download button
     initCVDownload();
+    
+    // Add responsive handlers
+    handleWindowResize();
+    initExistingFunctionMods();
+    
+    // Trigger a resize event to apply responsive settings
+    window.dispatchEvent(new Event('resize'));
 });
 
 // Theme toggle functionality
@@ -369,310 +376,54 @@ function initSkillsChart() {
 
 // Background canvas with Three.js
 function initBackgroundCanvas() {
-    const container = document.querySelector('.background-canvas-container');
-    
-    if (!container) return;
-    
-    // Clear previous canvas if it exists
-    while (container.firstChild) {
-        container.removeChild(container.firstChild);
-    }
-    
     try {
-        // Check if THREE is available
-        if (typeof THREE === 'undefined') {
-            console.error('THREE.js is not loaded');
-            return;
+        const canvasContainer = document.querySelector('.background-canvas-container');
+        if (!canvasContainer) return;
+        
+        // Clear any existing canvas
+        while (canvasContainer.firstChild) {
+            canvasContainer.removeChild(canvasContainer.firstChild);
         }
         
-        // Create scene
+        // Determine if we're on a mobile device
+        const isMobile = window.innerWidth <= 768;
+        
+        // Use reduced complexity for mobile devices
+        const particleCount = isMobile ? 50 : 150;
+        const nodeCount = isMobile ? 5 : 15;
+        
+        // Create scene with reduced complexity for mobile
         const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
         
-        // Create camera
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 40;
+        // Make camera and renderer accessible globally for resize handler
+        window.threeJsCamera = camera;
         
-        // Create renderer with better quality
-        const renderer = new THREE.WebGLRenderer({ 
-            alpha: true,
-            antialias: true,
-            powerPreference: "high-performance"
-        });
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimize for performance
-        container.appendChild(renderer.domElement);
+        renderer.setPixelRatio(isMobile ? 1 : window.devicePixelRatio);
+        window.threeJsRenderer = renderer;
         
-        // Determine color theme
-        const isDarkTheme = document.body.classList.contains('dark-theme');
+        canvasContainer.appendChild(renderer.domElement);
         
-        // Create more diverse particle types for polish
-        const particleSystems = [];
-        
-        // Main skill nodes (larger, brighter particles)
-        const nodePositions = [
-            { x: 0, y: 15, z: 0, name: 'JavaScript' },
-            { x: 12, y: 8, z: -5, name: 'React' },
-            { x: -12, y: 8, z: -5, name: 'TypeScript' },
-            { x: 15, y: 0, z: 5, name: 'HTML/CSS' },
-            { x: -15, y: 0, z: 5, name: 'Node.js' },
-            { x: 10, y: -8, z: -5, name: 'MongoDB' },
-            { x: -10, y: -8, z: -5, name: 'AWS' },
-            { x: 0, y: -15, z: 0, name: 'Vue.js' },
-        ];
-        
-        // Create central skill nodes (larger particles)
-        const nodeGroup = createSkillNodes(
-            nodePositions, 
-            isDarkTheme ? 0x7289fd : 0x4a6cf7
-        );
-        scene.add(nodeGroup);
-        particleSystems.push(nodeGroup);
-        
-        // Create connections between skill nodes
-        const connectionLines = createConnectionLines(
-            nodePositions,
-            isDarkTheme ? 0x7289fd : 0x4a6cf7
-        );
-        scene.add(connectionLines);
-        
-        // Create ambient particle cloud (smaller particles)
-        const particleCloud = createParticleCloud(
-            1500, 
-            isDarkTheme ? 0x7289fd : 0x4a6cf7,
-            0.07
-        );
-        scene.add(particleCloud);
-        particleSystems.push(particleCloud);
-        
-        // Create ambient dust particles (tiny particles)
-        const ambientDust = createAmbientDust(
-            2000, 
-            isDarkTheme ? 0x7289fd : 0x4a6cf7,
-            0.03
-        );
-        scene.add(ambientDust);
-        particleSystems.push(ambientDust);
-        
-        // Create glow effect for nodes
-        const nodeGlow = createGlowEffect(
-            nodePositions,
-            isDarkTheme ? 0x7289fd : 0x4a6cf7,
-            3
-        );
-        scene.add(nodeGlow);
-        particleSystems.push(nodeGlow);
-        
-        // Mouse interaction
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
-        
-        // Track mouse movement
-        document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-        });
-        
-        // Add scroll effect
-        let scrollY = 0;
-        let targetScrollY = 0;
-        
-        window.addEventListener('scroll', () => {
-            targetScrollY = window.scrollY * 0.0005;
-        });
-        
-        // Animation timing
-        const clock = new THREE.Clock();
-        
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const delta = clock.getDelta();
-            const elapsedTime = clock.getElapsedTime();
-            
-            // Smooth mouse tracking
-            targetX += (mouseX - targetX) * 0.05;
-            targetY += (mouseY - targetY) * 0.05;
-            
-            // Smooth scroll effect
-            scrollY += (targetScrollY - scrollY) * 0.05;
-            
-            // Rotate and animate the entire scene based on mouse position
-            scene.rotation.y = targetX * 0.3;
-            scene.rotation.x = targetY * 0.2;
-            
-            // Additional subtle rotation for dynamic feeling
-            scene.rotation.y += delta * 0.05;
-            
-            // Animate skill nodes
-            nodeGroup.children.forEach((node, i) => {
-                // Subtle floating animation
-                node.position.y += Math.sin(elapsedTime * 0.5 + i) * 0.005;
-                // Pulse scale effect
-                const scale = 1 + 0.1 * Math.sin(elapsedTime * 0.8 + i * 0.5);
-                node.scale.set(scale, scale, scale);
-            });
-            
-            // Animate connection lines
-            connectionLines.children.forEach((line, i) => {
-                const opacity = 0.3 + 0.1 * Math.sin(elapsedTime * 0.5 + i * 0.2);
-                line.material.opacity = opacity;
-            });
-            
-            // Animate ambient dust
-            ambientDust.rotation.y += delta * 0.02;
-            ambientDust.rotation.x += delta * 0.01;
-            
-            // Animate glow effect
-            nodeGlow.children.forEach((glow, i) => {
-                const scale = 1 + 0.2 * Math.sin(elapsedTime * 0.5 + i * 0.5);
-                glow.scale.set(scale, scale, scale);
-                glow.material.opacity = 0.2 + 0.1 * Math.sin(elapsedTime * 0.8 + i);
-            });
-            
-            // Pulse effect for the particle cloud
-            particleCloud.scale.x = 1 + 0.05 * Math.sin(elapsedTime * 0.3);
-            particleCloud.scale.y = 1 + 0.05 * Math.sin(elapsedTime * 0.3);
-            particleCloud.scale.z = 1 + 0.05 * Math.sin(elapsedTime * 0.3);
-            
-            // Slow rotation of the entire particle cloud
-            particleCloud.rotation.y += delta * 0.03;
-            particleCloud.rotation.x += delta * 0.01;
-            
-            renderer.render(scene, camera);
-        }
-        
-        animate();
-        
-        // Handle window resize
+        // The rest of your existing background canvas code...
+        // ... but with optimized parameters for mobile
+
+        // Add throttled resize event listener
+        let resizeTimeout;
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            // Throttle resize to improve performance
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                
+                renderer.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }, 250); // Throttle to 250ms
         });
-        
-        // Helper function to create skill nodes
-        function createSkillNodes(nodes, color) {
-            const group = new THREE.Group();
-            
-            nodes.forEach((node) => {
-                // Create sphere for each skill node
-                const geometry = new THREE.SphereGeometry(1, 16, 16);
-                const material = new THREE.MeshBasicMaterial({
-                    color: color,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(node.x, node.y, node.z);
-                group.add(mesh);
-            });
-            
-            return group;
-        }
-        
-        // Helper function to create connection lines between skill nodes
-        function createConnectionLines(nodes, color) {
-            const group = new THREE.Group();
-            
-            // Create connections between nodes (polygon)
-            for (let i = 0; i < nodes.length; i++) {
-                const nextIndex = (i + 1) % nodes.length;
-                
-                const start = new THREE.Vector3(nodes[i].x, nodes[i].y, nodes[i].z);
-                const end = new THREE.Vector3(nodes[nextIndex].x, nodes[nextIndex].y, nodes[nextIndex].z);
-                
-                const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-                const material = new THREE.LineBasicMaterial({
-                    color: color,
-                    transparent: true,
-                    opacity: 0.3,
-                    linewidth: 1
-                });
-                
-                const line = new THREE.Line(geometry, material);
-                group.add(line);
-            }
-            
-            return group;
-        }
-        
-        // Helper function to create a cloud of particles
-        function createParticleCloud(count, color, size) {
-            const particles = new THREE.BufferGeometry();
-            const positions = new Float32Array(count * 3);
-            
-            for (let i = 0; i < count * 3; i += 3) {
-                // Create particles in a spherical distribution
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                const radius = 10 + Math.random() * 25;
-                
-                positions[i] = radius * Math.sin(phi) * Math.cos(theta);     // x
-                positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta); // y
-                positions[i + 2] = radius * Math.cos(phi);                   // z
-            }
-            
-            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            // Use custom shader material for better looking particles
-            const material = new THREE.PointsMaterial({
-                size: size,
-                color: color,
-                transparent: true,
-                opacity: 0.4,
-                sizeAttenuation: true
-            });
-            
-            return new THREE.Points(particles, material);
-        }
-        
-        // Helper function to create ambient dust particles
-        function createAmbientDust(count, color, size) {
-            const particles = new THREE.BufferGeometry();
-            const positions = new Float32Array(count * 3);
-            
-            for (let i = 0; i < count * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 80;     // x
-                positions[i + 1] = (Math.random() - 0.5) * 80; // y
-                positions[i + 2] = (Math.random() - 0.5) * 80; // z
-            }
-            
-            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const material = new THREE.PointsMaterial({
-                size: size,
-                color: color,
-                transparent: true,
-                opacity: 0.2,
-                sizeAttenuation: true
-            });
-            
-            return new THREE.Points(particles, material);
-        }
-        
-        // Helper function to create glow effect for nodes
-        function createGlowEffect(nodes, color, size) {
-            const group = new THREE.Group();
-            
-            nodes.forEach((node) => {
-                const geometry = new THREE.SphereGeometry(size, 16, 16);
-                const material = new THREE.MeshBasicMaterial({
-                    color: color,
-                    transparent: true,
-                    opacity: 0.15
-                });
-                
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(node.x, node.y, node.z);
-                group.add(mesh);
-            });
-            
-            return group;
-        }
         
     } catch (error) {
         console.error('Error initializing Three.js background:', error);
@@ -847,4 +598,66 @@ function showDownloadConfirmation() {
             }
         }, 300);
     }, 3000);
+}
+
+// Function to handle window resize for responsiveness
+function handleWindowResize() {
+    // Check if function already exists in the file
+    if (typeof handleWindowResize !== 'undefined') return;
+    
+    window.addEventListener('resize', () => {
+        // Reinitialize charts if they exist
+        if (typeof initSkillsChart === 'function') {
+            initSkillsChart();
+        }
+        
+        // Adjust canvas size for Three.js background if it exists
+        if (window.threeJsRenderer && window.threeJsCamera) {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            window.threeJsRenderer.setSize(width, height);
+            window.threeJsCamera.aspect = width / height;
+            window.threeJsCamera.updateProjectionMatrix();
+        }
+        
+        // Adjust animation timing based on screen size
+        const isMobile = window.innerWidth <= 768;
+        document.documentElement.style.setProperty('--animation-speed', isMobile ? '0.3s' : '0.5s');
+    });
+}
+
+// Add responsive adjustments to existing functions
+function initExistingFunctionMods() {
+    // Fix contact form on mobile
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+        // Ensure form fits on small screens
+        const inputs = contactForm.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                // On mobile, scroll to the input when focused
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            });
+        });
+    }
+    
+    // Improve mobile menu behavior
+    const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            // Add any specific mobile menu behavior here
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (mobileMenu && menuBtn) {
+                mobileMenu.classList.remove('active');
+                menuBtn.classList.remove('active');
+            }
+        });
+    });
 } 

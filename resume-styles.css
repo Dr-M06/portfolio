@@ -2087,4 +2087,249 @@ body.dark-theme .back-to-top {
 
 body.dark-theme .footer {
     border-top: 1px solid var(--border-color);
+}
+
+/* ===== RESPONSIVE STYLES ===== */
+@media screen and (max-width: 1200px) {
+    .container {
+        max-width: 90%;
+        padding: 0 20px;
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .hero-image {
+        justify-self: center;
+        margin-bottom: 0;
+    }
+    
+    .hero-text {
+        text-align: center;
+    }
+    
+    .hero-social, .hero-cta {
+        justify-content: center;
+    }
+    
+    .skills-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .skills-chart-container {
+        margin-bottom: 20px;
+    }
+    
+    .project-item {
+        flex-direction: column;
+    }
+    
+    .project-image {
+        width: 100%;
+        height: 250px;
+    }
+    
+    .project-details {
+        width: 100%;
+        padding: 20px;
+    }
+    
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+    
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
+    .section-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .hero-welcome {
+        font-size: 1.4rem;
+    }
+    
+    h1 {
+        font-size: 3rem;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .timeline-item {
+        margin-left: 0;
+        padding: 0 0 30px 60px;
+    }
+    
+    .timeline-date {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: 10px;
+        transform: none;
+        text-align: left;
+    }
+    
+    .skill-category {
+        padding: 15px;
+    }
+    
+    .contact-form-container {
+        padding: 20px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .hero-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-title {
+        font-size: 1.6rem;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .hero-cta .btn {
+        width: 100%;
+    }
+    
+    .timeline-item {
+        padding-left: 40px;
+    }
+    
+    .timeline-dot {
+        left: 10px;
+    }
+    
+    .project-tags .tag {
+        margin-bottom: 8px;
+    }
+    
+    .contact-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .contact-icon {
+        margin-bottom: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+}
+
+/* Fix for the Three.js background canvas */
+@media screen and (max-width: 768px) {
+    .background-canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+}
+
+/* Additional fixes for proper viewport handling on mobile */
+@media screen and (max-width: 480px) {
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    .nav {
+        padding: 10px 0;
+    }
+    
+    .logo a {
+        font-size: 1.5rem;
+    }
+    
+    .mobile-menu {
+        width: 100%;
+        left: 0;
+        right: 0;
+        top: 60px;
+    }
+    
+    .hero-image-container {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .tag {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        margin-right: 5px;
+    }
+}
+
+/* Fix for Safari mobile issues */
+@supports (-webkit-touch-callout: none) {
+    .hero-section {
+        min-height: -webkit-fill-available;
+    }
+    
+    .background-canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+}
+
+/* Fix for font size on extremely small devices */
+@media screen and (max-width: 320px) {
+    html {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 2.2rem;
+    }
+    
+    .hero-title {
+        font-size: 1.4rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
 } 
